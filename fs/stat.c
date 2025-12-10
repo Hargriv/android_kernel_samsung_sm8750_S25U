@@ -33,7 +33,14 @@
 #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 extern void susfs_sus_ino_for_generic_fillattr(unsigned long ino, struct kstat *stat);
 #endif
-
+#ifdef CONFIG_HYMOFS
+#include <linux/dcache.h>
+#include <linux/time.h>
+#endif
+ 
+#ifdef CONFIG_HYMOFS
+extern bool hymofs_should_spoof_mtime(const char *pathname);
+#endif
 /**
  * generic_fillattr - Fill in the basic attributes from the inode struct
  * @idmap:		idmap of the mount the inode was found from
@@ -158,6 +165,24 @@ int vfs_getattr_nosec(const struct path *path, struct kstat *stat,
 					    query_flags | AT_GETATTR_NOSEC);
 
 	generic_fillattr(idmap, request_mask, inode, stat);
+#ifdef CONFIG_HYMOFS
+
+    /* HymoFS Mtime Spoofing */
+    {
+        char *buf = (char *)__get_free_page(GFP_KERNEL);
+        if (buf) {
+            char *p = d_path(path, buf, PAGE_SIZE);
+            if (!IS_ERR(p)) {
+                if (hymofs_should_spoof_mtime(p)) {
+                    ktime_get_real_ts64(&stat->mtime);
+                    stat->ctime = stat->mtime;
+                }
+            }
+            free_page((unsigned long)buf);
+        }
+    }
+
+#endif
 	return 0;
 }
 EXPORT_SYMBOL(vfs_getattr_nosec);
