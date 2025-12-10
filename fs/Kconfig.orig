@@ -292,12 +292,6 @@ config HUGETLB_PMD_PAGE_TABLE_SHARING
 config ARCH_HAS_GIGANTIC_PAGE
 	bool
 
-config HYMOFS
-	bool "HymoFS support"
-	default y
-	help
-	  HymoFS is a kernel-level path manipulation and hiding framework.
-
 source "fs/configfs/Kconfig"
 source "fs/efivarfs/Kconfig"
 

@@ -1,0 +1,17 @@
+@@ -17,7 +17,16 @@
+ #include <linux/syscalls.h>
+ #include <linux/uaccess.h>
+ #include <asm/unistd.h>
++#ifdef CONFIG_HYMOFS
++#include <linux/mm.h>
++#include <linux/dcache.h>
++#include <linux/time.h>
++#endif
+ 
++#ifdef CONFIG_HYMOFS
++extern bool hymofs_should_spoof_mtime(const char *pathname);
++
++#endif
+ /**
+  * generic_fillattr - Fill in the basic attributes from the inode struct
+  * @idmap:idmap of the mount the inode was found from
