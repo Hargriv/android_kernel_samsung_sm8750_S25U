@@ -30,8 +30,13 @@
 #include "internal.h"
 #include "mount.h"
 
+
 #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 extern void susfs_sus_ino_for_generic_fillattr(unsigned long ino, struct kstat *stat);
+#endif
+
+#ifdef CONFIG_HYMOFS
+#include "hymofs.h"
 #endif
 
 /**
@@ -158,6 +163,10 @@ int vfs_getattr_nosec(const struct path *path, struct kstat *stat,
 					    query_flags | AT_GETATTR_NOSEC);
 
 	generic_fillattr(idmap, request_mask, inode, stat);
+#ifdef CONFIG_HYMOFS
+	/* HymoFS: Spoof timestamps if needed */
+	hymofs_spoof_stat(path, stat);
+#endif
 	return 0;
 }
 EXPORT_SYMBOL(vfs_getattr_nosec);
