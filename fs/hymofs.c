@@ -72,7 +72,7 @@ atomic_t hymo_version = ATOMIC_INIT(0);
 EXPORT_SYMBOL(hymo_version);
 
 static bool hymo_debug_enabled = false;
-static bool hymo_stealth_enabled = true; // Default to true for security
+static bool hymo_stealth_enabled = false; // Default to true for security
 
 #define hymo_log(fmt, ...) do { \
     if (hymo_debug_enabled) \
