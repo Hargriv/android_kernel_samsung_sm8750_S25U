@@ -23,7 +23,6 @@ obj-y :=	open.o read_write.o file_table.o super.o \
 		kernel_read_file.o mnt_idmapping.o remap_range.o
 
 obj-$(CONFIG_KSU_SUSFS) += susfs.o
-obj-$(CONFIG_HYMOFS) += hymofs.o
 
 obj-$(CONFIG_BUFFER_HEAD)	+= buffer.o mpage.o
 obj-$(CONFIG_PROC_FS)		+= proc_namespace.o
