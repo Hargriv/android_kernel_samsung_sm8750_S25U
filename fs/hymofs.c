@@ -1596,18 +1596,6 @@ int hymofs_inject_entries64(struct hymo_readdir_context *ctx, void __user **dir_
 }
 EXPORT_SYMBOL(hymofs_inject_entries64);
 
-static dev_t get_dev_for_path(const char *path_str) {
-    struct path path;
-    dev_t dev = 0;
-    if (kern_path(path_str, LOOKUP_FOLLOW, &path) == 0) {
-        if (path.dentry && path.dentry->d_sb) {
-            dev = path.dentry->d_sb->s_dev;
-        }
-        path_put(&path);
-    }
-    return dev;
-}
-
 /* Update timestamps for injected directories to appear current */
 extern char *d_absolute_path(const struct path *, char *, int);
 void hymofs_spoof_stat(const struct path *path, struct kstat *stat)
