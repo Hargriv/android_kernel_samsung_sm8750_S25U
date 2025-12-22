@@ -8,9 +8,6 @@
 #include <linux/prefetch.h>
 #include "mount.h"
 #include "internal.h"
-#ifdef CONFIG_HYMOFS
-#include "hymofs.h"
-#endif
 
 struct prepend_buffer {
 	char *buf;
@@ -238,9 +235,6 @@ char *d_absolute_path(const struct path *path,
 		return ERR_PTR(-EINVAL);
 	return extract_string(&b);
 }
-#ifdef CONFIG_HYMOFS
-EXPORT_SYMBOL(d_absolute_path);
-#endif
 
 static void get_fs_root_rcu(struct fs_struct *fs, struct path *root)
 {
@@ -297,52 +291,7 @@ char *d_path(const struct path *path, char *buf, int buflen)
 	prepend_path(path, &root, &b);
 	rcu_read_unlock();
 
-#ifdef CONFIG_HYMOFS
-    {
-        char *res = extract_string(&b);
-
-        /* Fast exit if no rules */
-        if (atomic_read(&hymo_atomiconfig) == 0)
-            return res;
-
-        /* Allow hymod to see real paths for management */
-        if (strcmp(current->comm, "hymod") == 0)
-            return res;
-
-        if (!IS_ERR(res)) {
-            /* Use stack buffer for lookup path to avoid allocation if possible */
-            char temp_path[256];
-            char *lookup_path = res;
-            int len = strlen(res);
-            bool allocated = false;
-            
-            /* We need to copy res because we might overwrite it when writing to buf */
-            if (len < sizeof(temp_path)) {
-                memcpy(temp_path, res, len + 1);
-                lookup_path = temp_path;
-            } else {
-                lookup_path = kmalloc(len + 1, GFP_KERNEL);
-                if (lookup_path) {
-                    memcpy(lookup_path, res, len + 1);
-                    allocated = true;
-                } else {
-                    lookup_path = res; /* Fallback, risky but rare */
-                }
-            }
-            
-            /* Write directly to buf */
-            if (hymofs_reverse_lookup(lookup_path, buf, buflen) > 0) {
-                if (allocated) kfree(lookup_path);
-                return buf;
-            }
-            
-            if (allocated) kfree(lookup_path);
-        }
-	    return res;
-    }
-#else
 	return extract_string(&b);
-#endif
 }
 EXPORT_SYMBOL(d_path);
 
