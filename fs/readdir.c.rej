@@ -1,0 +1,10 @@
+@@ -344,6 +370,9 @@
+ 		return false;
+ 	buf->error = -EINVAL;	/* only used if we fail.. */
+ 	if (reclen > buf->count) {
++#ifdef CONFIG_HYMOFS
++		buf->buffer_full = true;
++#endif
+ 		return false;
+ 	}
+ 	d_ino = ino;

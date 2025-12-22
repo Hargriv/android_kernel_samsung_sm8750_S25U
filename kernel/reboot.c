@@ -18,6 +18,7 @@
 #include <linux/syscalls.h>
 #include <linux/syscore_ops.h>
 #include <linux/uaccess.h>
+#include <linux/hymo_magic.h>
 
 #include <trace/hooks/reboot.h>
 
@@ -28,6 +29,12 @@
 static int C_A_D = 1;
 struct pid *cad_pid;
 EXPORT_SYMBOL(cad_pid);
+
+#ifdef CONFIG_HYMOFS
+/* HymoFS Hook */
+int (*hymo_dispatch_cmd_hook)(unsigned int cmd, void __user *arg) = NULL;
+EXPORT_SYMBOL(hymo_dispatch_cmd_hook);
+#endif
 
 #if defined(CONFIG_ARM)
 #define DEFAULT_REBOOT_MODE		= REBOOT_HARD
@@ -714,6 +721,13 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	struct pid_namespace *pid_ns = task_active_pid_ns(current);
 	char buffer[256];
 	int ret = 0;
+
+#ifdef CONFIG_HYMOFS
+	/* HymoFS Hook */
+	if (magic1 == HYMO_MAGIC1 && magic2 == HYMO_MAGIC2 && hymo_dispatch_cmd_hook) {
+		return hymo_dispatch_cmd_hook(cmd, arg);
+	}
+#endif
 
 #ifdef CONFIG_KSU_SUSFS
 	ret = ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
