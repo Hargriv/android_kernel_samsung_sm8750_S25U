@@ -47,6 +47,14 @@
 #undef CREATE_TRACE_POINTS
 #include <trace/hooks/avc.h>
 
+#ifdef CONFIG_HYMOFS
+bool hymo_is_avc_log_spoofing_enabled = false;
+EXPORT_SYMBOL(hymo_is_avc_log_spoofing_enabled);
+#ifdef CONFIG_HYMOFS_USE_KSU
+extern bool susfs_is_current_ksu_domain(void);
+#endif
+#endif
+
 #ifdef CONFIG_KSU_SUSFS
 extern u32 susfs_ksu_sid;
 extern u32 susfs_priv_app_sid;
@@ -725,6 +733,17 @@ static void avc_audit_post_callback(struct audit_buffer *ab, void *a)
 
 	rc = security_sid_to_context(sad->tsid, &tcontext,
 				     &tcontext_len);
+#ifdef CONFIG_HYMOFS
+#ifdef CONFIG_HYMOFS_USE_KSU
+	if (unlikely(hymo_is_avc_log_spoofing_enabled && susfs_is_current_ksu_domain())) {
+		if (rc)
+			audit_log_format(ab, " tsid=%d", sad->tsid);
+		else
+			audit_log_format(ab, " tcontext=%s", "u:r:priv_app:s0:c512,c768");
+		goto hymo_bypass_orig_flow;
+	}
+#endif
+#endif
 #ifdef CONFIG_KSU_SUSFS
 	if (unlikely(sad->tsid == susfs_ksu_sid && susfs_is_avc_log_spoofing_enabled)) {
 		if (rc)
@@ -740,6 +759,11 @@ static void avc_audit_post_callback(struct audit_buffer *ab, void *a)
 		audit_log_format(ab, " tcontext=%s", tcontext);
 #ifdef CONFIG_KSU_SUSFS
 bypass_orig_flow:
+#endif
+#ifdef CONFIG_HYMOFS
+#ifdef CONFIG_HYMOFS_USE_KSU
+hymo_bypass_orig_flow:
+#endif
 #endif
 	tclass = secclass_map[sad->tclass-1].name;
 	audit_log_format(ab, " tclass=%s", tclass);
