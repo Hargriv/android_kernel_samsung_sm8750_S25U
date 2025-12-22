@@ -8,9 +8,6 @@
 #include <linux/prefetch.h>
 #include "mount.h"
 #include "internal.h"
-#ifdef CONFIG_HYMOFS
-#include "hymofs.h"
-#endif
 
 struct prepend_buffer {
 	char *buf;
@@ -238,9 +235,6 @@ char *d_absolute_path(const struct path *path,
 		return ERR_PTR(-EINVAL);
 	return extract_string(&b);
 }
-#ifdef CONFIG_HYMOFS
-EXPORT_SYMBOL(d_absolute_path);
-#endif
 
 static void get_fs_root_rcu(struct fs_struct *fs, struct path *root)
 {
@@ -297,31 +291,7 @@ char *d_path(const struct path *path, char *buf, int buflen)
 	prepend_path(path, &root, &b);
 	rcu_read_unlock();
 
-#ifdef CONFIG_HYMOFS
-    {
-        char *res = extract_string(&b);
-
-        /* Allow hymod to see real paths for management */
-        if (strcmp(current->comm, "hymod") == 0)
-            return res;
-
-        if (!IS_ERR(res)) {
-            char *src = hymofs_reverse_lookup(res);
-            if (src) {
-                if (strlen(src) < buflen) {
-                    /* Overwrite with source path for masking */
-                    strscpy(buf, src, buflen);
-                    kfree(src);
-                    return buf;
-                }
-                kfree(src);
-            }
-        }
-	    return res;
-    }
-#else
 	return extract_string(&b);
-#endif
 }
 EXPORT_SYMBOL(d_path);
 
