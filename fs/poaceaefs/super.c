@@ -7,6 +7,7 @@
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Poaceae Project");
 MODULE_DESCRIPTION("Stealthy Stackable FS with Injection");
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 
 static int poaceae_xattr_get(const struct xattr_handler *handler,
                              struct dentry *dentry, struct inode *inode,
