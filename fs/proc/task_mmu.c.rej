@@ -1,0 +1,10 @@
+@@ -1737,6 +1827,9 @@
+ 	int ret = 0, copied = 0;
+ 	unsigned int nr_subpages = __PAGE_SIZE / PAGE_SIZE;
+ 	pagemap_entry_t *res = NULL;
++#ifdef CONFIG_KSU_SUSFS_SUS_MAP
++	struct vm_area_struct *vma;
++#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+ 
+ 	if (!mm || !mmget_not_zero(mm))
+ 		goto out;
