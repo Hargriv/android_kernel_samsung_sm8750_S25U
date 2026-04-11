@@ -1,5 +1,0 @@
-@@ -200,3 +200,4 @@
- 
- obj-$(CONFIG_S390)		+= s390/
- obj-$(CONFIG_UH)	+= uh/
-+obj-$(CONFIG_REKERNEL) += rekernel/
